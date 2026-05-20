@@ -1,654 +1,1033 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Retail CLV Intelligence Platform</title>
-  <style>
-    /* ── Reset & base ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retail CLV Optimization — Project Documentation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #161616;
+    --bg3: #1e1e1e;
+    --border: #2a2a2a;
+    --text: #e8e6e0;
+    --muted: #888;
+    --accent: #f0a500;
+    --accent2: #e05c5c;
+    --accent3: #5cb8e0;
+    --accent4: #6be09a;
+    --champions: #6be09a;
+    --loyal: #5cb8e0;
+    --atrisk: #f0a500;
+    --dormant: #e05c5c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; font-size: 15px; }
 
-    :root {
-      --dot-color:   #d1d5db;
-      --dot-size:    1.2px;
-      --dot-spacing: 22px;
-      --bg:          #ffffff;
-      --surface:     rgba(255,255,255,0.93);
-      --border:      #e2e8f0;
-      --text-primary:   #0f172a;
-      --text-secondary: #475569;
-      --text-muted:     #94a3b8;
-      --accent:      #6366f1;
-      --accent-2:    #8b5cf6;
-      --green:       #10b981;
-      --blue:        #3b82f6;
-      --amber:       #f59e0b;
-      --red:         #ef4444;
-      --radius-sm:   8px;
-      --radius-md:   14px;
-      --radius-lg:   20px;
-      --shadow-sm:   0 1px 4px rgba(0,0,0,.05);
-      --shadow-md:   0 4px 20px rgba(0,0,0,.07);
-      --shadow-lg:   0 8px 40px rgba(0,0,0,.10);
-    }
+  .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 80px 10vw; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -200px; right: -200px; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(240,165,0,0.06) 0%, transparent 70%); pointer-events: none; }
+  .hero-tag { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 24px; }
+  .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2.5rem, 6vw, 5rem); line-height: 1.1; margin-bottom: 24px; max-width: 800px; }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero-desc { font-size: 17px; color: var(--muted); max-width: 560px; margin-bottom: 48px; line-height: 1.8; }
+  .hero-stats { display: flex; gap: 48px; flex-wrap: wrap; }
+  .hero-stat { border-left: 2px solid var(--accent); padding-left: 16px; }
+  .hero-stat .num { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--accent); display: block; }
+  .hero-stat .label { font-size: 12px; color: var(--muted); letter-spacing: 0.05em; }
 
-    html {
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-      font-size: 16px;
-      color: var(--text-primary);
-      scroll-behavior: smooth;
-    }
+  .toc { position: sticky; top: 0; background: rgba(15,15,15,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 0 10vw; z-index: 100; overflow-x: auto; }
+  .toc-inner { display: flex; gap: 0; white-space: nowrap; }
+  .toc a { display: inline-block; padding: 14px 16px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .toc a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
-    body {
-      min-height: 100vh;
-      background-color: var(--bg);
-      background-image: radial-gradient(circle, var(--dot-color) var(--dot-size), transparent var(--dot-size));
-      background-size: var(--dot-spacing) var(--dot-spacing);
-    }
+  .section { padding: 80px 10vw; border-bottom: 1px solid var(--border); }
+  .section-num { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; }
+  .section h2 { font-family: 'DM Serif Display', serif; font-size: clamp(1.8rem, 3vw, 2.8rem); margin-bottom: 16px; line-height: 1.2; }
+  .section-intro { font-size: 16px; color: var(--muted); max-width: 680px; margin-bottom: 48px; line-height: 1.8; }
 
-    /* ── Layout ── */
-    .layout {
-      display: flex;
-      min-height: 100vh;
-    }
+  .grid { display: grid; gap: 16px; }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
 
-    /* ── Sidebar ── */
-    .sidebar {
-      width: 260px;
-      min-width: 260px;
-      background: #0f172a;
-      padding: 2rem 1.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-    }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 28px; transition: border-color 0.2s; }
+  .card:hover { border-color: #444; }
+  .card-icon { font-size: 1.5rem; margin-bottom: 12px; display: block; }
+  .card h3 { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 15px; margin-bottom: 8px; color: var(--text); }
+  .card p { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-      margin-bottom: 2rem;
-    }
-    .sidebar-logo .icon {
-      width: 40px; height: 40px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.25rem;
-    }
-    .sidebar-logo .brand {
-      display: flex; flex-direction: column;
-    }
-    .sidebar-logo .brand-name {
-      font-size: 0.95rem; font-weight: 700; color: #f1f5f9; line-height: 1.2;
-    }
-    .sidebar-logo .brand-sub {
-      font-size: 0.7rem; color: #64748b; font-weight: 400;
-    }
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); margin: 24px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: var(--bg3); }
+  th { padding: 14px 20px; text-align: left; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 14px 20px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  td.mono { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent3); }
+  td.num { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); font-weight: 500; }
 
-    .sidebar-divider {
-      height: 1px; background: #1e293b; margin: 0.75rem 0;
-    }
+  .code-block { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 24px; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.8; overflow-x: auto; margin: 20px 0; color: #ccc; }
 
-    .sidebar-label {
-      font-size: 0.65rem; font-weight: 700; letter-spacing: .1em;
-      text-transform: uppercase; color: #475569; padding: 0 0.5rem;
-      margin: 1rem 0 0.4rem;
-    }
+  .formula { background: var(--bg3); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 20px 24px; font-family: 'DM Mono', monospace; font-size: 13px; margin: 20px 0; color: var(--accent); line-height: 1.8; }
 
-    .nav-item {
-      display: flex; align-items: center; gap: 0.65rem;
-      padding: 0.55rem 0.75rem;
-      border-radius: var(--radius-sm);
-      cursor: pointer; transition: background .15s, color .15s;
-      color: #94a3b8; font-size: 0.875rem; font-weight: 500;
-      text-decoration: none;
-      margin-bottom: 2px;
-    }
-    .nav-item:hover { background: rgba(255,255,255,.07); color: #e2e8f0; }
-    .nav-item.active {
-      background: linear-gradient(135deg, rgba(99,102,241,.25), rgba(139,92,246,.15));
-      color: #a5b4fc; border: 1px solid rgba(99,102,241,.3);
-    }
-    .nav-item .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step { display: flex; gap: 24px; padding: 28px 0; border-bottom: 1px solid var(--border); }
+  .step:last-child { border-bottom: none; }
+  .step-num { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #000; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; margin-top: 4px; }
+  .step-content h4 { font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+  .step-content p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .step-content .removed { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent2); margin-top: 8px; }
 
-    .sidebar-badges {
-      margin-top: auto;
-      padding-top: 1rem;
-    }
-    .model-badge {
-      display: inline-block; background: rgba(255,255,255,.06);
-      border: 1px solid #1e293b; border-radius: 6px;
-      padding: 0.2rem 0.5rem; font-size: 0.68rem; color: #64748b;
-      margin: 2px; font-family: monospace;
-    }
+  .segment-card { border-radius: 8px; padding: 28px; border: 1px solid; }
+  .segment-card.champions { border-color: var(--champions); background: rgba(107,224,154,0.05); }
+  .segment-card.loyal     { border-color: var(--loyal);     background: rgba(92,184,224,0.05); }
+  .segment-card.atrisk    { border-color: var(--atrisk);    background: rgba(240,165,0,0.05); }
+  .segment-card.dormant   { border-color: var(--dormant);   background: rgba(224,92,92,0.05); }
+  .segment-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 8px; }
+  .segment-card.champions .segment-label { color: var(--champions); }
+  .segment-card.loyal     .segment-label { color: var(--loyal); }
+  .segment-card.atrisk    .segment-label { color: var(--atrisk); }
+  .segment-card.dormant   .segment-label { color: var(--dormant); }
+  .segment-card h3 { font-family: 'DM Serif Display', serif; font-size: 1.4rem; margin-bottom: 12px; }
+  .segment-stat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
+  .segment-stat:last-of-type { border-bottom: none; }
+  .segment-stat .s-label { color: var(--muted); }
+  .segment-stat .s-val   { font-family: 'DM Mono', monospace; color: var(--text); }
+  .segment-action { margin-top: 16px; padding: 10px 14px; border-radius: 4px; font-size: 12px; line-height: 1.5; }
+  .segment-card.champions .segment-action { background: rgba(107,224,154,0.1); color: var(--champions); }
+  .segment-card.loyal     .segment-action { background: rgba(92,184,224,0.1);  color: var(--loyal); }
+  .segment-card.atrisk    .segment-action { background: rgba(240,165,0,0.1);   color: var(--atrisk); }
+  .segment-card.dormant   .segment-action { background: rgba(224,92,92,0.1);   color: var(--dormant); }
 
-    /* ── Main ── */
-    .main {
-      flex: 1;
-      padding: 1.5rem 2rem;
-      max-width: 1400px;
-    }
+  .callout { background: var(--bg2); border: 1px solid var(--border); border-left: 3px solid var(--accent3); border-radius: 0 8px 8px 0; padding: 20px 24px; margin: 24px 0; font-size: 14px; line-height: 1.7; }
+  .callout strong { color: var(--accent3); }
 
-    /* ── Page header ── */
-    .page-header {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      padding: 1.8rem 2.2rem;
-      box-shadow: var(--shadow-md);
-      margin-bottom: 1.5rem;
-      border: 1px solid var(--border);
-    }
-    .page-header h1 {
-      font-size: 1.75rem; font-weight: 800;
-      letter-spacing: -0.03em; color: var(--text-primary);
-      margin-bottom: 0.25rem;
-    }
-    .page-header p {
-      color: var(--text-secondary); font-size: 0.9rem;
-    }
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin: 32px 0; }
+  .kpi { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center; }
+  .kpi .kpi-val { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--accent); display: block; line-height: 1; margin-bottom: 6px; }
+  .kpi .kpi-label { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
 
-    /* ── KPI grid ── */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .kpi-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 1.1rem 1.3rem;
-      box-shadow: var(--shadow-sm);
-      position: relative;
-      overflow: hidden;
-    }
-    .kpi-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      border-radius: var(--radius-md) var(--radius-md) 0 0;
-    }
-    .kpi-card .kpi-icon {
-      font-size: 1.3rem; margin-bottom: 0.4rem; display: block;
-    }
-    .kpi-card .kpi-label {
-      font-size: 0.68rem; font-weight: 700; letter-spacing: .07em;
-      text-transform: uppercase; color: var(--text-muted);
-      margin-bottom: 0.3rem;
-    }
-    .kpi-card .kpi-value {
-      font-size: 1.55rem; font-weight: 800; color: var(--text-primary);
-      line-height: 1.1; letter-spacing: -0.02em;
-    }
-    .kpi-card .kpi-delta {
-      font-size: 0.72rem; color: var(--green); margin-top: 0.2rem;
-    }
+  .param-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 24px 0; }
+  .param-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .param-name { font-family: 'DM Mono', monospace; font-size: 1.4rem; color: var(--accent); margin-bottom: 4px; }
+  .param-val { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent3); margin-bottom: 10px; }
+  .param-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
 
-    /* ── Card ── */
-    .card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 1.4rem;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 1rem;
-    }
-    .card-title {
-      font-size: 0.9rem; font-weight: 700; color: var(--text-primary);
-      margin-bottom: 1rem; padding-bottom: 0.6rem;
-      border-bottom: 2px solid #f1f5f9;
-      display: flex; align-items: center; gap: 0.4rem;
-    }
+  .roi-row { display: grid; grid-template-columns: 1fr repeat(3, auto); gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 20px 0; }
+  .roi-header { background: var(--bg3); padding: 12px 20px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .roi-cell { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 13px; display: flex; align-items: center; }
+  .roi-cell.strategy { font-weight: 500; }
+  .roi-cell.money { font-family: 'DM Mono', monospace; color: var(--accent3); }
+  .roi-cell.positive { font-family: 'DM Mono', monospace; color: var(--accent4); font-weight: 600; }
+  .roi-cell.negative { font-family: 'DM Mono', monospace; color: var(--accent2); }
 
-    /* ── Chart grid ── */
-    .chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .chart-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-    .chart-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-    @media (max-width: 1100px) {
-      .chart-grid-3 { grid-template-columns: 1fr 1fr; }
-      .chart-grid-4 { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 700px) {
-      .chart-grid-2, .chart-grid-3, .chart-grid-4 { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
-    }
+  .uplift-table { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin: 24px 0; }
+  .uplift-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; border-bottom: 1px solid var(--border); }
+  .uplift-row:last-child { border-bottom: none; }
+  .uplift-row.header { background: var(--bg3); }
+  .uplift-cell { padding: 14px 16px; font-size: 12px; }
+  .uplift-row.header .uplift-cell { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 
-    /* ── Segment cards ── */
-    .seg-card {
-      background: white;
-      border-radius: var(--radius-md);
-      padding: 1.2rem;
-      border-top: 4px solid var(--seg-color, var(--accent));
-      box-shadow: var(--shadow-sm);
-      border: 1px solid var(--border);
-      border-top-width: 4px;
-    }
-    .seg-name {
-      font-size: 0.7rem; font-weight: 700; letter-spacing: .07em;
-      text-transform: uppercase; color: var(--text-muted);
-    }
-    .seg-count {
-      font-size: 2rem; font-weight: 800; color: var(--text-primary);
-      line-height: 1.1; margin: .1rem 0;
-    }
-    .seg-sub { font-size: 0.78rem; color: var(--text-muted); }
-    .seg-divider { border-color: #f1f5f9; margin: .6rem 0; }
-    .seg-metric { font-size: 0.82rem; color: var(--text-secondary); }
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.05em; }
+  .tag.green  { background: rgba(107,224,154,0.15); color: var(--accent4); }
+  .tag.red    { background: rgba(224,92,92,0.15);   color: var(--accent2); }
+  .tag.orange { background: rgba(240,165,0,0.15);   color: var(--accent); }
+  .tag.blue   { background: rgba(92,184,224,0.15);  color: var(--accent3); }
 
-    /* ── Badges ── */
-    .badge {
-      display: inline-flex; align-items: center; gap: 0.3rem;
-      padding: 0.2rem 0.6rem; border-radius: 999px;
-      font-size: 0.72rem; font-weight: 600;
-    }
-    .badge-green  { background: #f0fdf4; color: #059669; border: 1px solid #a7f3d0; }
-    .badge-blue   { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
-    .badge-amber  { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-    .badge-red    { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-    .badge-purple { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+  /* ── SNIPPET TABLE (raw/clean data previews) ── */
+  .snippet-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin: 24px 0 8px; }
+  .snippet-label span { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 3px 10px; }
 
-    /* ── Gauge wrapper ── */
-    .gauges-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    .gauge-card {
-      background: white; border: 1px solid var(--border);
-      border-radius: var(--radius-md); padding: 1rem;
-      text-align: center; box-shadow: var(--shadow-sm);
-    }
-    .gauge-title { font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
-                   text-transform: uppercase; letter-spacing: .06em; margin-bottom: 0.5rem; }
-    .gauge-value { font-size: 2.2rem; font-weight: 800; color: var(--text-primary); }
-    .gauge-bar-track { height: 8px; background: #f1f5f9; border-radius: 99px;
-                       overflow: hidden; margin: 0.5rem 0; }
-    .gauge-bar-fill  { height: 100%; border-radius: 99px; transition: width .5s ease; }
+  /* ── CHART CANVAS ── */
+  .chart-container { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin: 24px 0; position: relative; }
+  .chart-container canvas { max-width: 100%; }
+  .chart-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .chart-sub   { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
 
-    /* ── Form ── */
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
-    .form-section { background: white; border: 1px solid var(--border);
-                    border-radius: var(--radius-md); padding: 1.3rem; }
-    .form-section h3 { font-size: 0.85rem; font-weight: 700; color: var(--text-primary);
-                        margin-bottom: 1rem; padding-bottom: 0.5rem;
-                        border-bottom: 2px solid #f1f5f9; }
-    .form-field { margin-bottom: 0.85rem; }
-    .form-field label { display: block; font-size: 0.75rem; font-weight: 600;
-                         color: var(--text-secondary); margin-bottom: 0.25rem; }
-    .form-field input, .form-field select {
-      width: 100%; padding: .45rem .75rem;
-      border: 1px solid var(--border); border-radius: var(--radius-sm);
-      font-size: 0.88rem; color: var(--text-primary);
-      background: #fafafa; outline: none; transition: border .15s, box-shadow .15s;
-    }
-    .form-field input:focus, .form-field select:focus {
-      border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,.12);
-      background: white;
-    }
+  /* ── FEATURE CALC BOXES ── */
+  .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 24px 0; }
+  .feat-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .feat-box .feat-name { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 6px; font-weight: 500; }
+  .feat-box .feat-formula { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent3); background: var(--bg3); border-radius: 4px; padding: 6px 10px; margin: 8px 0; }
+  .feat-box .feat-example { font-size: 12px; color: var(--accent4); margin: 6px 0; }
+  .feat-box .feat-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
 
-    /* ── Table ── */
-    .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .data-table th {
-      background: #f8fafc; padding: 0.7rem 1rem; text-align: left;
-      font-size: 0.72rem; font-weight: 700; color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: .06em;
-      border-bottom: 2px solid var(--border); white-space: nowrap;
-    }
-    .data-table td {
-      padding: 0.65rem 1rem; border-bottom: 1px solid #f1f5f9;
-      color: var(--text-secondary); vertical-align: middle;
-    }
-    .data-table tr:last-child td { border-bottom: none; }
-    .data-table tr:hover td { background: #fafafa; }
+  /* ── CONTEXT BLOCK ── */
+  .context-block { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 28px 32px; margin: 24px 0; }
+  .context-block p { font-size: 14px; color: var(--text); line-height: 1.8; margin-bottom: 12px; }
+  .context-block p:last-child { margin-bottom: 0; }
+  .context-block .highlight { background: var(--bg3); border-left: 3px solid var(--accent); padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent3); line-height: 1.8; }
+  .context-block strong { color: var(--accent); }
 
-    /* ── Recommendation box ── */
-    .reco-box {
-      border-radius: var(--radius-md); padding: 1.3rem 1.6rem;
-      border-left: 5px solid; margin-top: 1rem;
-    }
-    .reco-box.green  { background: #f0fdf4; border-color: var(--green); }
-    .reco-box.blue   { background: #eff6ff; border-color: var(--blue); }
-    .reco-box.amber  { background: #fffbeb; border-color: var(--amber); }
-    .reco-box.red    { background: #fef2f2; border-color: var(--red); }
-    .reco-box h4 { font-size: 1rem; font-weight: 700; color: var(--text-primary);
-                   margin-bottom: .35rem; }
-    .reco-box p  { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.65; }
-
-    /* ── Tabs ── */
-    .tabs { display: flex; gap: 4px; background: #f8fafc; padding: 4px;
-            border-radius: 10px; border: 1px solid var(--border); width: fit-content;
-            margin-bottom: 1rem; }
-    .tab {
-      padding: .38rem 1rem; border-radius: 7px; cursor: pointer;
-      font-size: 0.82rem; font-weight: 500; color: var(--text-muted);
-      transition: all .15s; border: none; background: transparent;
-    }
-    .tab:hover { color: var(--text-primary); background: rgba(0,0,0,.04); }
-    .tab.active { background: white; color: var(--text-primary);
-                  box-shadow: var(--shadow-sm); }
-
-    /* ── Filter panel ── */
-    .filter-panel {
-      background: white; border: 1px solid var(--border);
-      border-radius: var(--radius-md); padding: 1.2rem 1.4rem;
-      margin-bottom: 1rem;
-    }
-    .filter-panel h4 { font-size: 0.85rem; font-weight: 700; color: var(--text-primary);
-                        margin-bottom: 0.9rem; }
-    .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                   gap: 0.8rem; }
-    .filter-field label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted);
-                           display: block; margin-bottom: 0.25rem;
-                           text-transform: uppercase; letter-spacing: .06em; }
-    .filter-field select, .filter-field input {
-      width: 100%; padding: .38rem .65rem; border: 1px solid var(--border);
-      border-radius: var(--radius-sm); font-size: 0.83rem; color: var(--text-primary);
-      background: #fafafa; outline: none;
-    }
-
-    /* ── Button ── */
-    .btn {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      padding: 0.55rem 1.2rem; border-radius: var(--radius-sm);
-      font-size: 0.875rem; font-weight: 600; cursor: pointer;
-      border: none; transition: all .15s; text-decoration: none;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: white; box-shadow: 0 2px 8px rgba(99,102,241,.3);
-    }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,.4); }
-    .btn-outline {
-      background: white; color: var(--text-secondary);
-      border: 1px solid var(--border);
-    }
-    .btn-outline:hover { background: #f8fafc; color: var(--text-primary); }
-
-    /* ── Progress / churn indicator ── */
-    .progress-track { height: 6px; background: #f1f5f9; border-radius: 99px; overflow: hidden; }
-    .progress-fill  { height: 100%; border-radius: 99px; }
-
-    /* ── Scrollbar ── */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #f8fafc; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-
-    /* ── Animations ── */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .card, .kpi-card, .seg-card { animation: fadeInUp .3s ease forwards; }
-  </style>
+  footer { padding: 48px 10vw; color: var(--muted); font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+  h4 { font-weight: 600; font-size: 15px; margin: 24px 0 10px; }
+  p  { margin-bottom: 12px; }
+  ul { margin: 12px 0 12px 20px; }
+  li { margin-bottom: 6px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  li strong { color: var(--text); }
+</style>
 </head>
 <body>
 
-<div class="layout">
+<!-- ═══════ HERO ═══════ -->
+<section class="hero">
+  <div class="hero-tag">Portfolio Project — Data Science</div>
+  <h1>Retail Customer<br><em>Lifetime Value</em><br>Optimization Engine</h1>
+  <p class="hero-desc">An end-to-end machine learning pipeline built on 1M+ wholesale retail transactions. Predicts customer lifetime value, identifies churn risk, segments the customer base, and optimises promotional targeting using uplift modelling.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="num">1,067,371</span><span class="label">Raw Transactions</span></div>
+    <div class="hero-stat"><span class="num">5,862</span><span class="label">Unique Customers</span></div>
+    <div class="hero-stat"><span class="num">£17.4M</span><span class="label">Total Revenue</span></div>
+    <div class="hero-stat"><span class="num">4 Models</span><span class="label">BG/NBD · GG · XGBoost · T-Learner</span></div>
+  </div>
+</section>
 
-  <!-- ════════════════════ SIDEBAR ════════════════════ -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="icon">🛒</div>
-      <div class="brand">
-        <span class="brand-name">CLV Intelligence</span>
-        <span class="brand-sub">Retail Analytics Platform</span>
+<!-- ═══════ NAV ═══════ -->
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#dataset">Dataset</a>
+    <a href="#cleaning">Cleaning</a>
+    <a href="#eda">EDA</a>
+    <a href="#features">Features</a>
+    <a href="#bgnbd">BG/NBD</a>
+    <a href="#clv">CLV</a>
+    <a href="#segments">Segments</a>
+    <a href="#churn">Churn</a>
+    <a href="#uplift">Uplift</a>
+    <a href="#simulation">Simulation</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     01 — DATASET
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="dataset">
+  <div class="section-num">01 — Dataset Overview</div>
+  <h2>The Raw Data</h2>
+  <p class="section-intro">We used the Online Retail II dataset from the UCI Machine Learning Repository. It contains all transactions from a UK-based wholesale gift retailer between December 2009 and December 2011. Their customers are businesses — gift shops, boutiques, and resellers — who buy in bulk to stock their shelves.</p>
+
+  <div class="kpi-row">
+    <div class="kpi"><span class="kpi-val">1,067,371</span><span class="kpi-label">Total Rows</span></div>
+    <div class="kpi"><span class="kpi-val">8</span><span class="kpi-label">Columns</span></div>
+    <div class="kpi"><span class="kpi-val">5,942</span><span class="kpi-label">Unique Customers</span></div>
+    <div class="kpi"><span class="kpi-val">53,628</span><span class="kpi-label">Unique Invoices</span></div>
+    <div class="kpi"><span class="kpi-val">£476</span><span class="kpi-label">Avg Order Value</span></div>
+    <div class="kpi"><span class="kpi-val">2 Years</span><span class="kpi-label">Date Range</span></div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Example</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td>Invoice</td><td class="mono">string</td><td class="mono">489434</td><td>Unique order ID. Invoices starting with 'C' are cancellations.</td></tr>
+        <tr><td>StockCode</td><td class="mono">string</td><td class="mono">85048</td><td>Unique product identifier.</td></tr>
+        <tr><td>Description</td><td class="mono">string</td><td class="mono">15CM CHRISTMAS GLASS BALL</td><td>Product name. Some rows have missing descriptions.</td></tr>
+        <tr><td>Quantity</td><td class="mono">int</td><td class="mono">12</td><td>Units purchased. Negative values indicate returns.</td></tr>
+        <tr><td>InvoiceDate</td><td class="mono">datetime</td><td class="mono">2009-12-01 07:45</td><td>Date and time of the transaction.</td></tr>
+        <tr><td>Price</td><td class="mono">float</td><td class="mono">6.95</td><td>Price per unit in GBP. Zero prices indicate errors.</td></tr>
+        <tr><td>Customer ID</td><td class="mono">float</td><td class="mono">13085.0</td><td>Unique customer identifier. 243,007 rows have no Customer ID.</td></tr>
+        <tr><td>Country</td><td class="mono">string</td><td class="mono">United Kingdom</td><td>Country of the customer. UK represents 83.8% of revenue.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout"><strong>Important context:</strong> Each row is one product line from one invoice — not one order. A single order can contain 20+ rows, one per product. Average order value of £476 confirms this is a wholesale business — not a typical consumer retailer.</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     02 — DATA CLEANING
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="cleaning">
+  <div class="section-num">02 — Data Cleaning</div>
+  <h2>From Raw to Reliable</h2>
+  <p class="section-intro">Raw transaction data is never production-ready. We applied five cleaning steps, each with a clear business reason. We always kept the original raw data untouched and stored clean data in a new variable.</p>
+
+  <h4>Raw Data — First 5 Rows (before any cleaning)</h4>
+  <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">This is exactly what we loaded from the Excel file. Notice: Customer ID is a float (13085.0), some rows have no Customer ID (NaN), invoices starting with 'C' are cancellations, and there is no TotalPrice column yet.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Invoice</th><th>StockCode</th><th>Description</th><th>Quantity</th><th>InvoiceDate</th><th>Price</th><th>Customer ID</th><th>Country</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">489434</td><td class="mono">85048</td><td>15CM CHRISTMAS GLASS BALL 20 LIGHTS</td><td class="mono">12</td><td class="mono">2009-12-01 07:45</td><td class="mono">6.95</td><td class="mono">13085.0</td><td>United Kingdom</td></tr>
+        <tr><td class="mono">489434</td><td class="mono">79323P</td><td>PINK CHERRY LIGHTS</td><td class="mono">12</td><td class="mono">2009-12-01 07:45</td><td class="mono">6.75</td><td class="mono">13085.0</td><td>United Kingdom</td></tr>
+        <tr><td class="mono">489434</td><td class="mono">79323W</td><td>WHITE CHERRY LIGHTS</td><td class="mono">12</td><td class="mono">2009-12-01 07:45</td><td class="mono">6.75</td><td class="mono">13085.0</td><td>United Kingdom</td></tr>
+        <tr><td class="mono">489434</td><td class="mono">22041</td><td>RECORD FRAME 7" SINGLE SIZE</td><td class="mono">48</td><td class="mono">2009-12-01 07:45</td><td class="mono">2.10</td><td class="mono">13085.0</td><td>United Kingdom</td></tr>
+        <tr><td class="mono">C489449</td><td class="mono">21258</td><td>VICTORIAN SEWING BOX LARGE</td><td class="mono">-5</td><td class="mono">2009-12-01 09:01</td><td class="mono">10.95</td><td class="mono">NaN</td><td>United Kingdom</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="color:var(--muted); font-size:12px; font-style:italic;">Row 5 shows two problems at once — a cancellation (C489449) and a missing Customer ID (NaN). Both will be removed during cleaning.</p>
+
+  <div class="steps" style="margin-top:40px;">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Remove rows with no Customer ID</h4>
+        <p>243,007 rows had no customer identifier. Without a Customer ID we cannot attribute the purchase to any individual — making the row useless for customer-level analysis. These are likely guest checkouts or system entries.</p>
+        <div class="removed">− 243,007 rows removed → 824,364 remaining</div>
       </div>
     </div>
-
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-label">Navigation</div>
-
-    <a class="nav-item active" href="#">
-      <span class="nav-icon">📊</span> Overview
-    </a>
-    <a class="nav-item" href="#">
-      <span class="nav-icon">🧩</span> Segmentation
-    </a>
-    <a class="nav-item" href="#">
-      <span class="nav-icon">💰</span> CLV Analysis
-    </a>
-    <a class="nav-item" href="#">
-      <span class="nav-icon">⚠️</span> Churn Analysis
-    </a>
-    <a class="nav-item" href="#">
-      <span class="nav-icon">📐</span> RFM Analysis
-    </a>
-    <a class="nav-item" href="#">
-      <span class="nav-icon">🔎</span> Customer Explorer
-    </a>
-    <a class="nav-item" href="#">
-      <span class="nav-icon">🚀</span> Score a Customer
-    </a>
-
-    <div class="sidebar-badges">
-      <div class="sidebar-divider"></div>
-      <div class="sidebar-label">Active Models</div>
-      <span class="model-badge">BG/NBD</span>
-      <span class="model-badge">Gamma-Gamma</span>
-      <span class="model-badge">XGBoost</span>
-      <span class="model-badge">T-Learner</span>
-      <span class="model-badge">K-Means</span>
-      <div style="margin-top:1rem; font-size:0.72rem; color:#475569;">
-        4,181 customers · 2 years data
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Remove cancelled invoices</h4>
+        <p>Invoices starting with 'C' (e.g. C489434) represent cancellations or returns. These are not real purchases — including them would artificially inflate revenue and distort purchase frequency counts.</p>
+        <div class="removed">− 18,744 rows removed → 805,620 remaining</div>
       </div>
     </div>
-  </aside>
-
-  <!-- ════════════════════ MAIN ════════════════════ -->
-  <main class="main">
-
-    <!-- Page Header -->
-    <div class="page-header">
-      <h1>📊 Retail CLV Dashboard</h1>
-      <p>High-level snapshot of customer value, behaviour, and churn risk across the entire portfolio.</p>
-    </div>
-
-    <!-- KPI Grid -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <span class="kpi-icon">👥</span>
-        <div class="kpi-label">Total Customers</div>
-        <div class="kpi-value">4,181</div>
-        <div class="kpi-delta">↑ Full portfolio loaded</div>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-icon">💷</span>
-        <div class="kpi-label">Portfolio 90d CLV</div>
-        <div class="kpi-value">£436K</div>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-icon">📈</span>
-        <div class="kpi-label">Mean CLV / Customer</div>
-        <div class="kpi-value">£104</div>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-icon">📊</span>
-        <div class="kpi-label">Median CLV</div>
-        <div class="kpi-value">£42</div>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-icon">⚠️</span>
-        <div class="kpi-label">Overall Churn Rate</div>
-        <div class="kpi-value">14.7%</div>
-      </div>
-      <div class="kpi-card">
-        <span class="kpi-icon">❤️</span>
-        <div class="kpi-label">Avg P(Alive)</div>
-        <div class="kpi-value">81.0%</div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Remove invalid quantities and prices</h4>
+        <p>71 rows had a price of zero or negative. A transaction with zero price is either a data entry error or a system glitch — it cannot represent a real sale.</p>
+        <div class="removed">− 71 rows removed → 805,549 remaining</div>
       </div>
     </div>
-
-    <!-- Segment Cards -->
-    <div class="chart-grid-4" style="margin-bottom:1rem;">
-      <div class="seg-card" style="--seg-color:#10b981;">
-        <div class="seg-name">Champions</div>
-        <div class="seg-count">144</div>
-        <div class="seg-sub">3.4% of base</div>
-        <hr class="seg-divider">
-        <div class="seg-metric">Avg CLV: <strong>£512</strong></div>
-        <div class="seg-metric">P(Alive): <strong>92%</strong></div>
-      </div>
-      <div class="seg-card" style="--seg-color:#3b82f6;">
-        <div class="seg-name">Loyal Customers</div>
-        <div class="seg-count">957</div>
-        <div class="seg-sub">22.9% of base</div>
-        <hr class="seg-divider">
-        <div class="seg-metric">Avg CLV: <strong>£180</strong></div>
-        <div class="seg-metric">P(Alive): <strong>85%</strong></div>
-      </div>
-      <div class="seg-card" style="--seg-color:#f59e0b;">
-        <div class="seg-name">At Risk</div>
-        <div class="seg-count">2,198</div>
-        <div class="seg-sub">52.6% of base</div>
-        <hr class="seg-divider">
-        <div class="seg-metric">Avg CLV: <strong>£62</strong></div>
-        <div class="seg-metric">P(Alive): <strong>78%</strong></div>
-      </div>
-      <div class="seg-card" style="--seg-color:#ef4444;">
-        <div class="seg-name">Lost / Dormant</div>
-        <div class="seg-count">882</div>
-        <div class="seg-sub">21.1% of base</div>
-        <hr class="seg-divider">
-        <div class="seg-metric">Avg CLV: <strong>£22</strong></div>
-        <div class="seg-metric">P(Alive): <strong>61%</strong></div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Remove non-product stock codes</h4>
+        <p>Some rows represent internal charges, not product sales: POST (postage — 1,838 rows), M (manual adjustments — 709), BANK CHARGES (32), PADS (17), DOT (16), D (discounts — 5). These are accounting entries that would corrupt any revenue analysis.</p>
+        <div class="removed">− 2,617 rows removed → 802,932 remaining</div>
       </div>
     </div>
-
-    <!-- Charts Row 1 -->
-    <div class="chart-grid-2">
-      <div class="card">
-        <div class="card-title">🧩 Customer Segment Distribution</div>
-        <div style="height:260px;display:flex;align-items:center;justify-content:center;
-                    color:var(--text-muted);font-size:0.82rem;">
-          ↳ Donut chart rendered by Plotly in Streamlit
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">📉 90-Day CLV Distribution</div>
-        <div style="height:260px;display:flex;align-items:center;justify-content:center;
-                    color:var(--text-muted);font-size:0.82rem;">
-          ↳ Histogram rendered by Plotly in Streamlit
-        </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Fix data types and derive columns</h4>
+        <p>Customer ID was stored as a float (13085.0) — converted to a clean string "13085". InvoiceDate was stored as text — parsed to proper datetime for date calculations. Three new columns derived: TotalPrice (Quantity × Price), invoice_dow (day of week 0–6), invoice_hour (0–23).</p>
+        <div class="removed">0 rows removed — type corrections and column additions only</div>
       </div>
     </div>
+  </div>
 
-    <!-- Gauge Row (Score a Customer preview) -->
-    <div class="card" style="margin-top:1rem;">
-      <div class="card-title">🚀 Customer Score Preview</div>
-      <div class="gauges-row">
+  <h4>Clean Data — First 5 Rows (after all 5 cleaning steps)</h4>
+  <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">Now Customer ID is a clean string, InvoiceDate is a proper datetime, TotalPrice is calculated, cancellations are gone, and all rows have valid quantities and prices.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Invoice</th><th>StockCode</th><th>Description</th><th>Quantity</th><th>InvoiceDate</th><th>Price</th><th>Customer ID</th><th>Country</th><th>TotalPrice</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">489434</td><td class="mono">85048</td><td>15CM CHRISTMAS GLASS BALL 20 LIGHTS</td><td class="mono">12</td><td class="mono">2009-12-01 07:45</td><td class="mono">6.95</td><td class="mono">13085</td><td>United Kingdom</td><td class="num">£83.40</td></tr>
+        <tr><td class="mono">489434</td><td class="mono">79323P</td><td>PINK CHERRY LIGHTS</td><td class="mono">12</td><td class="mono">2009-12-01 07:45</td><td class="mono">6.75</td><td class="mono">13085</td><td>United Kingdom</td><td class="num">£81.00</td></tr>
+        <tr><td class="mono">489434</td><td class="mono">79323W</td><td>WHITE CHERRY LIGHTS</td><td class="mono">12</td><td class="mono">2009-12-01 07:45</td><td class="mono">6.75</td><td class="mono">13085</td><td>United Kingdom</td><td class="num">£81.00</td></tr>
+        <tr><td class="mono">489434</td><td class="mono">22041</td><td>RECORD FRAME 7" SINGLE SIZE</td><td class="mono">48</td><td class="mono">2009-12-01 07:45</td><td class="mono">2.10</td><td class="mono">13085</td><td>United Kingdom</td><td class="num">£100.80</td></tr>
+        <tr><td class="mono">489434</td><td class="mono">21232</td><td>STRAWBERRY CERAMIC TRINKET BOX</td><td class="mono">24</td><td class="mono">2009-12-01 07:45</td><td class="mono">1.25</td><td class="mono">13085</td><td>United Kingdom</td><td class="num">£30.00</td></tr>
+      </tbody>
+    </table>
+  </div>
 
-        <div class="gauge-card">
-          <div class="gauge-title">P(Alive)</div>
-          <div class="gauge-value" style="color:#10b981;">87%</div>
-          <div class="gauge-bar-track">
-            <div class="gauge-bar-fill" style="width:87%;background:#10b981;"></div>
-          </div>
-          <div style="font-size:0.72rem;color:var(--text-muted);">High vitality</div>
-        </div>
+  <div class="kpi-row" style="margin-top:32px;">
+    <div class="kpi"><span class="kpi-val">1,067,371</span><span class="kpi-label">Raw Rows</span></div>
+    <div class="kpi"><span class="kpi-val">264,439</span><span class="kpi-label">Rows Removed</span></div>
+    <div class="kpi"><span class="kpi-val">802,932</span><span class="kpi-label">Clean Rows</span></div>
+    <div class="kpi"><span class="kpi-val">75.2%</span><span class="kpi-label">Data Retained</span></div>
+  </div>
+</section>
 
-        <div class="gauge-card">
-          <div class="gauge-title">Churn Probability</div>
-          <div class="gauge-value" style="color:#f59e0b;">24%</div>
-          <div class="gauge-bar-track">
-            <div class="gauge-bar-fill" style="width:24%;background:#f59e0b;"></div>
-          </div>
-          <div style="font-size:0.72rem;color:var(--text-muted);">Low risk</div>
-        </div>
+<!-- ═══════════════════════════════════════════════════════════
+     03 — EDA
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="eda">
+  <div class="section-num">03 — Exploratory Data Analysis</div>
+  <h2>Understanding the Business</h2>
+  <p class="section-intro">Before building any models, we explored the data visually to understand revenue patterns, customer geography, and seasonal behaviour. This shapes all modelling decisions that follow.</p>
 
-        <div class="gauge-card">
-          <div class="gauge-title">Uplift Score</div>
-          <div class="gauge-value" style="color:#6366f1;">0.12</div>
-          <div class="gauge-bar-track">
-            <div class="gauge-bar-fill" style="width:12%;background:#6366f1;"></div>
-          </div>
-          <div style="font-size:0.72rem;color:var(--text-muted);">Moderate</div>
-        </div>
+  <!-- What this dataset represents -->
+  <h4>What This Dataset Represents</h4>
+  <div class="context-block">
+    <p>This is a <strong>UK-based wholesale retailer</strong>. Their customers are businesses — gift shops, boutiques, and online resellers — who buy products in bulk and then resell them to end consumers at a higher price.</p>
+    <div class="highlight">Customer 13085 bought 12 units of "15CM CHRISTMAS GLASS BALL" at £6.95 each → Total: £83.40</div>
+    <p>That is <strong>not</strong> an individual person buying one Christmas ornament for their home. That is a <strong>shop owner</strong> buying 12 of them to stock their shelves and sell individually to their retail customers.</p>
+    <p>This explains two things we observed in the data:</p>
+    <ul style="margin: 12px 0 12px 20px;">
+      <li style="color: var(--text);">The <strong>average order value is £476</strong> — shops buy in bulk, not single items. A typical consumer retailer averages £20–£50 per order.</li>
+      <li style="color: var(--text);">The <strong>October/November revenue peak</strong> — shop owners are stocking up their shelves ahead of the Christmas retail season so their customers can buy gifts.</li>
+    </ul>
+    <p>When we say "customer" in this project, we mean a <strong>business</strong> — not an individual consumer. CLV, churn, and segmentation all apply to these business buyers.</p>
+  </div>
 
-      </div>
+  <!-- Monthly Revenue Chart -->
+  <h4>Monthly Revenue Trend</h4>
+  <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Total revenue grouped by month across the full 2-year observation period (Dec 2009 – Dec 2011). December 2011 appears low because the dataset only covers the first 9 days of that month.</p>
+  <div class="chart-container">
+    <div class="chart-title">Monthly Revenue (£)</div>
+    <div class="chart-sub">Oct–Nov peaks clearly visible in both years — driven by Christmas stocking</div>
+    <canvas id="revenueChart" height="90"></canvas>
+  </div>
+
+  <!-- Monthly Revenue Breakdown Table -->
+  <h4>Monthly Revenue Breakdown</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Year</th><th>Month</th><th>Revenue (£)</th><th>% of Total</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>2009</td><td>December</td><td class="num">£681,530</td><td class="mono">3.9%</td><td>Partial month (dataset starts Dec 1)</td></tr>
+        <tr><td>2010</td><td>January</td><td class="num">£539,008</td><td class="mono">3.1%</td><td>Post-Christmas slowdown</td></tr>
+        <tr><td>2010</td><td>February</td><td class="num">£499,950</td><td class="mono">2.9%</td><td>Slowest month in dataset</td></tr>
+        <tr><td>2010</td><td>March</td><td class="num">£668,978</td><td class="mono">3.8%</td><td></td></tr>
+        <tr><td>2010</td><td>April</td><td class="num">£588,126</td><td class="mono">3.4%</td><td></td></tr>
+        <tr><td>2010</td><td>May</td><td class="num">£595,087</td><td class="mono">3.4%</td><td></td></tr>
+        <tr><td>2010</td><td>June</td><td class="num">£632,686</td><td class="mono">3.6%</td><td></td></tr>
+        <tr><td>2010</td><td>July</td><td class="num">£584,049</td><td class="mono">3.3%</td><td></td></tr>
+        <tr><td>2010</td><td>August</td><td class="num">£597,130</td><td class="mono">3.4%</td><td></td></tr>
+        <tr><td>2010</td><td>September</td><td class="num">£808,545</td><td class="mono">4.6%</td><td>Pre-Christmas ramp begins</td></tr>
+        <tr><td style="color:var(--accent4)"><strong>2010</strong></td><td style="color:var(--accent4)"><strong>October</strong></td><td class="num" style="color:var(--accent4)">£1,015,989</td><td class="mono" style="color:var(--accent4)">5.8%</td><td style="color:var(--accent4)">🔺 Peak month</td></tr>
+        <tr><td style="color:var(--accent4)"><strong>2010</strong></td><td style="color:var(--accent4)"><strong>November</strong></td><td class="num" style="color:var(--accent4)">£1,163,154</td><td class="mono" style="color:var(--accent4)">6.7%</td><td style="color:var(--accent4)">🔺 Highest month in dataset</td></tr>
+        <tr><td>2010</td><td>December</td><td class="num">£877,814</td><td class="mono">5.0%</td><td></td></tr>
+        <tr><td>2011</td><td>January</td><td class="num">£564,227</td><td class="mono">3.2%</td><td>Post-Christmas drop again</td></tr>
+        <tr><td>2011</td><td>February</td><td class="num">£443,546</td><td class="mono">2.5%</td><td>Second lowest month</td></tr>
+        <tr><td>2011</td><td>March</td><td class="num">£585,263</td><td class="mono">3.4%</td><td></td></tr>
+        <tr><td>2011</td><td>April</td><td class="num">£455,667</td><td class="mono">2.6%</td><td></td></tr>
+        <tr><td>2011</td><td>May</td><td class="num">£660,918</td><td class="mono">3.8%</td><td></td></tr>
+        <tr><td>2011</td><td>June</td><td class="num">£654,933</td><td class="mono">3.8%</td><td></td></tr>
+        <tr><td>2011</td><td>July</td><td class="num">£593,232</td><td class="mono">3.4%</td><td></td></tr>
+        <tr><td>2011</td><td>August</td><td class="num">£637,157</td><td class="mono">3.7%</td><td></td></tr>
+        <tr><td>2011</td><td>September</td><td class="num">£941,801</td><td class="mono">5.4%</td><td>Pre-Christmas ramp begins again</td></tr>
+        <tr><td style="color:var(--accent4)"><strong>2011</strong></td><td style="color:var(--accent4)"><strong>October</strong></td><td class="num" style="color:var(--accent4)">£1,006,342</td><td class="mono" style="color:var(--accent4)">5.8%</td><td style="color:var(--accent4)">🔺 Peak month</td></tr>
+        <tr><td style="color:var(--accent4)"><strong>2011</strong></td><td style="color:var(--accent4)"><strong>November</strong></td><td class="num" style="color:var(--accent4)">£1,143,246</td><td class="mono" style="color:var(--accent4)">6.6%</td><td style="color:var(--accent4)">🔺 Second highest month</td></tr>
+        <tr><td>2011</td><td>December</td><td class="num">£513,380</td><td class="mono">2.9%</td><td>Partial — only 9 days of data</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Key insight — seasonal pattern repeats perfectly:</strong> October and November peak in both 2010 and 2011, with almost identical revenue figures (£1.01M–£1.16M). January and February are consistently the weakest months. This predictable seasonality means the business should plan inventory and staffing around this cycle every year.
+  </div>
+
+  <!-- Country breakdown -->
+  <h4>Revenue by Country</h4>
+  <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">The UK dominates with 83.8% of all revenue. The remaining 16.2% is spread across 37 other countries, mostly in Europe.</p>
+
+  <div class="chart-container">
+    <div class="chart-title">Revenue by Country (Top 10)</div>
+    <div class="chart-sub">United Kingdom accounts for £14.6M of the £17.4M total</div>
+    <canvas id="countryChart" height="100"></canvas>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Rank</th><th>Country</th><th>Revenue (£)</th><th>% of Total</th><th>Business Insight</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1</td><td><strong>United Kingdom</strong></td><td class="num">£14,627,419</td><td class="num">83.8%</td><td>Home market — overwhelmingly dominant</td></tr>
+        <tr><td class="mono">2</td><td>Ireland (EIRE)</td><td class="num">£602,058</td><td class="num">3.4%</td><td>Close neighbour, easy logistics</td></tr>
+        <tr><td class="mono">3</td><td>Netherlands</td><td class="num">£549,953</td><td class="num">3.2%</td><td>Strong EU trading relationship with UK</td></tr>
+        <tr><td class="mono">4</td><td>Germany</td><td class="num">£388,960</td><td class="num">2.2%</td><td>Largest economy in Europe</td></tr>
+        <tr><td class="mono">5</td><td>France</td><td class="num">£315,714</td><td class="num">1.8%</td><td>Close neighbour</td></tr>
+        <tr><td class="mono">6</td><td>Australia</td><td class="num">£168,485</td><td class="num">1.0%</td><td>English-speaking market</td></tr>
+        <tr><td class="mono">7</td><td>Spain</td><td class="num">£98,841</td><td class="num">0.6%</td><td></td></tr>
+        <tr><td class="mono">8</td><td>Switzerland</td><td class="num">£93,624</td><td class="num">0.5%</td><td></td></tr>
+        <tr><td class="mono">9</td><td>Sweden</td><td class="num">£86,079</td><td class="num">0.5%</td><td></td></tr>
+        <tr><td class="mono">10</td><td>Denmark</td><td class="num">£68,560</td><td class="num">0.4%</td><td></td></tr>
+        <tr><td class="mono">…</td><td>27 other countries</td><td class="num">£456,083</td><td class="num">2.6%</td><td>Tiny individual contributions</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Business risk — over-reliance on UK market:</strong> 83.8% of revenue from one country is a concentration risk. If the UK economy slows down, the entire business is exposed. The business already has footholds in Ireland (3.4%), Netherlands (3.2%), and Germany (2.2%) — expanding these markets would significantly reduce this risk.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     04 — FEATURE ENGINEERING
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="features">
+  <div class="section-num">04 — Feature Engineering</div>
+  <h2>Building Customer-Level Features</h2>
+  <p class="section-intro">Raw data has one row per product line per invoice. Machine learning models need one row per customer. We transformed 802,932 transaction rows into a clean feature table of 5,862 customers — each described by 12 behavioural features. Final RFM table shape: (5862, 12).</p>
+
+  <div class="callout">
+    <strong>Snapshot Date: 10th December 2011.</strong> All customer metrics are calculated relative to this single reference point — the day after the last transaction in the dataset (9th December 2011). We add one day to ensure no customer has a recency of 0. Think of it as the "as of this morning" date for the analysis.
+  </div>
+
+  <h4>How Each Feature Is Calculated</h4>
+
+  <div class="feat-grid">
+    <div class="feat-box">
+      <div class="feat-name">TotalPrice (derived column)</div>
+      <div class="feat-formula">TotalPrice = Quantity × Price</div>
+      <div class="feat-example">Example: 12 units × £6.95 = £83.40</div>
+      <div class="feat-desc">Added during cleaning. Every product line now has a monetary value. This is the foundation for all spend-based calculations. Not a customer-level feature — exists at transaction level.</div>
     </div>
 
-    <!-- Recommendation box sample -->
-    <div class="reco-box green">
-      <h4>🟢 Retain &amp; Reward</h4>
-      <p>Top-value customer. Offer exclusive loyalty rewards, early product access, or VIP membership.
-         Avoid generic promotions — personalise every touchpoint to deepen the relationship
-         and prevent competitive poaching.</p>
+    <div class="feat-box">
+      <div class="feat-name">Recency</div>
+      <div class="feat-formula">Recency = Snapshot Date − MAX(InvoiceDate)</div>
+      <div class="feat-example">Example: 10 Dec 2011 − 8 Dec 2011 = 2 days</div>
+      <div class="feat-desc">How many days since the customer last placed an order. Measured from snapshot date. Low recency = recently active. High recency = has gone quiet and may be churning.</div>
     </div>
 
-    <!-- Sample at-risk table -->
-    <div class="card" style="margin-top:1rem;">
-      <div class="card-title">🔥 High-Risk Customers (Churn Prob &gt; 60%)</div>
-      <div style="overflow-x:auto;">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Customer ID</th>
-              <th>Segment</th>
-              <th>CLV (90d)</th>
-              <th>Churn Prob</th>
-              <th>P(Alive)</th>
-              <th>Recency (d)</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><code>C14320</code></td>
-              <td><span class="badge badge-amber">At Risk</span></td>
-              <td><strong>£348.20</strong></td>
-              <td>
-                <span style="color:#ef4444;font-weight:700;">78%</span>
-                <div class="progress-track" style="margin-top:3px;width:80px;">
-                  <div class="progress-fill" style="width:78%;background:#ef4444;"></div>
-                </div>
-              </td>
-              <td>52%</td>
-              <td>112</td>
-              <td><button class="btn btn-outline" style="font-size:0.72rem;padding:.25rem .6rem;">Win-Back</button></td>
-            </tr>
-            <tr>
-              <td><code>C17841</code></td>
-              <td><span class="badge badge-amber">At Risk</span></td>
-              <td><strong>£210.50</strong></td>
-              <td>
-                <span style="color:#f59e0b;font-weight:700;">63%</span>
-                <div class="progress-track" style="margin-top:3px;width:80px;">
-                  <div class="progress-fill" style="width:63%;background:#f59e0b;"></div>
-                </div>
-              </td>
-              <td>61%</td>
-              <td>88</td>
-              <td><button class="btn btn-outline" style="font-size:0.72rem;padding:.25rem .6rem;">Win-Back</button></td>
-            </tr>
-            <tr>
-              <td><code>C12583</code></td>
-              <td><span class="badge badge-red">Lost / Dormant</span></td>
-              <td><strong>£44.10</strong></td>
-              <td>
-                <span style="color:#ef4444;font-weight:700;">91%</span>
-                <div class="progress-track" style="margin-top:3px;width:80px;">
-                  <div class="progress-fill" style="width:91%;background:#ef4444;"></div>
-                </div>
-              </td>
-              <td>28%</td>
-              <td>203</td>
-              <td><button class="btn btn-outline" style="font-size:0.72rem;padding:.25rem .6rem;">Reactivate</button></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="feat-box">
+      <div class="feat-name">Frequency</div>
+      <div class="feat-formula">Frequency = COUNT(DISTINCT Invoice)</div>
+      <div class="feat-example">Example: Customer placed 8 unique invoices = Frequency 8</div>
+      <div class="feat-desc">Total number of distinct orders placed by the customer. Each unique invoice number counts as one order regardless of how many product lines it contains.</div>
     </div>
 
-    <div style="height:2rem;"></div>
-    <div style="text-align:center;font-size:0.72rem;color:var(--text-muted);">
-      Retail CLV Intelligence Platform · BG/NBD + Gamma-Gamma + XGBoost + T-Learner · 2009–2011 UK Retail Data
+    <div class="feat-box">
+      <div class="feat-name">Monetary</div>
+      <div class="feat-formula">Monetary = SUM(TotalPrice) ÷ Frequency</div>
+      <div class="feat-example">Example: £5,633 total ÷ 8 orders = £704.16 avg order</div>
+      <div class="feat-desc">Average order value in £. This is not total lifetime spend — it is the average amount spent each time the customer placed an order. Captures spending intensity per visit.</div>
     </div>
-    <div style="height:1rem;"></div>
 
-  </main>
-</div>
+    <div class="feat-box">
+      <div class="feat-name">TotalSpend</div>
+      <div class="feat-formula">TotalSpend = SUM(Quantity × Price)</div>
+      <div class="feat-example">Example: All orders combined = £5,633.32</div>
+      <div class="feat-desc">Cumulative lifetime revenue from this customer. Unlike Monetary which is an average, TotalSpend is the running total across all orders ever placed. A high-frequency low-spend customer can still have high TotalSpend.</div>
+    </div>
 
+    <div class="feat-box">
+      <div class="feat-name">UniqueProducts</div>
+      <div class="feat-formula">UniqueProducts = COUNT(DISTINCT StockCode)</div>
+      <div class="feat-example">Example: Bought 126 different StockCodes = 126 unique products</div>
+      <div class="feat-desc">Number of different products the customer has purchased across all their orders. High value = explores the catalogue widely and buys variety. Low value = repeatedly buys the same product(s).</div>
+    </div>
+
+    <div class="feat-box">
+      <div class="feat-name">AvgBasketSize</div>
+      <div class="feat-formula">AvgBasketSize = MEAN(Quantity per transaction row)</div>
+      <div class="feat-example">Example: Average 13 units per product line</div>
+      <div class="feat-desc">Average number of physical units ordered per product line. Different from Monetary which measures £ value. A customer with AvgBasketSize=2000 is a bulk buyer of cheap products. One with AvgBasketSize=2 buys small quantities of expensive items.</div>
+    </div>
+
+    <div class="feat-box">
+      <div class="feat-name">Tenure</div>
+      <div class="feat-formula">Tenure = MAX(InvoiceDate) − MIN(InvoiceDate)</div>
+      <div class="feat-example">Example: First order Jan 2010, last order Jan 2011 = 365 days tenure</div>
+      <div class="feat-desc">Number of days between the customer's first and last purchase. Measures how long the customer was actively buying from this retailer. Different from Recency — Tenure measures their active lifespan, Recency measures their current silence.</div>
+    </div>
+
+    <div class="feat-box">
+      <div class="feat-name">PurchaseVelocity</div>
+      <div class="feat-formula">PurchaseVelocity = MEAN(days between consecutive orders)</div>
+      <div class="feat-example">Example: Orders on Jan 1, Feb 1, Apr 1 → gaps: 31, 59 days → avg 45 days</div>
+      <div class="feat-desc">Average number of days between consecutive orders. Represents the customer's natural buying rhythm. A customer with velocity=7 days buying weekly is very different from one with velocity=90 days buying quarterly — even if their recency is the same.</div>
+    </div>
+
+    <div class="feat-box">
+      <div class="feat-name">PreferredDayOfWeek</div>
+      <div class="feat-formula">PreferredDayOfWeek = MODE(InvoiceDate.dayofweek)</div>
+      <div class="feat-example">Example: 4 out of 8 orders placed on Tuesday → PreferredDayOfWeek = 1</div>
+      <div class="feat-desc">The day of the week (0=Monday, 6=Sunday) on which the customer most commonly places orders. Used for personalising promotion send timing — reach them the day before they naturally buy.</div>
+    </div>
+
+    <div class="feat-box">
+      <div class="feat-name">PreferredHour</div>
+      <div class="feat-formula">PreferredHour = MODE(InvoiceDate.hour)</div>
+      <div class="feat-example">Example: Most orders placed at 14:00 → PreferredHour = 14</div>
+      <div class="feat-desc">The hour of day (0–23) at which the customer most commonly places orders. Complements PreferredDayOfWeek for precise timing of marketing outreach.</div>
+    </div>
+
+    <div class="feat-box">
+      <div class="feat-name">PreferredDayName</div>
+      <div class="feat-formula">PreferredDayName = MAP(PreferredDayOfWeek → name)</div>
+      <div class="feat-example">Example: 1 → "Tuesday"</div>
+      <div class="feat-desc">Human-readable version of PreferredDayOfWeek. Maps 0–6 to Monday–Sunday. Added purely for readability in reports and dashboards — the model uses the numeric version.</div>
+    </div>
+  </div>
+
+  <h4>RFM Feature Table — First 8 Rows</h4>
+  <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">Shape: (5862, 12). One row per customer. This table is the input for all subsequent modelling steps.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Customer ID</th>
+          <th>Recency</th>
+          <th>Frequency</th>
+          <th>Monetary</th>
+          <th>TotalSpend</th>
+          <th>UniqueProducts</th>
+          <th>AvgBasketSize</th>
+          <th>Tenure</th>
+          <th>PurchaseVelocity</th>
+          <th>PrefDOW</th>
+          <th>PrefHour</th>
+          <th>PrefDayName</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="mono">12346</td><td class="mono">326</td><td class="mono">12</td><td class="num">£6,463</td><td class="num">£77,556</td><td class="mono">27</td><td class="mono">2,184.9</td><td class="mono">400</td><td class="mono">35.9</td><td class="mono">0</td><td class="mono">13</td><td>Monday</td></tr>
+        <tr><td class="mono">12347</td><td class="mono">2</td><td class="mono">8</td><td class="num">£704</td><td class="num">£5,633</td><td class="mono">126</td><td class="mono">13.0</td><td class="mono">402</td><td class="mono">57.0</td><td class="mono">1</td><td class="mono">14</td><td>Tuesday</td></tr>
+        <tr><td class="mono">12348</td><td class="mono">75</td><td class="mono">5</td><td class="num">£332</td><td class="num">£1,658</td><td class="mono">24</td><td class="mono">58.8</td><td class="mono">362</td><td class="mono">90.5</td><td class="mono">0</td><td class="mono">14</td><td>Monday</td></tr>
+        <tr><td class="mono">12349</td><td class="mono">19</td><td class="mono">3</td><td class="num">£1,226</td><td class="num">£3,679</td><td class="mono">137</td><td class="mono">9.4</td><td class="mono">570</td><td class="mono">285.0</td><td class="mono">3</td><td class="mono">9</td><td>Thursday</td></tr>
+        <tr><td class="mono">12350</td><td class="mono">310</td><td class="mono">1</td><td class="num">£294</td><td class="num">£294</td><td class="mono">16</td><td class="mono">12.3</td><td class="mono">0</td><td class="mono">0.0</td><td class="mono">2</td><td class="mono">16</td><td>Wednesday</td></tr>
+        <tr><td class="mono">12352</td><td class="mono">36</td><td class="mono">9</td><td class="num">£192</td><td class="num">£1,733</td><td class="mono">72</td><td class="mono">11.1</td><td class="mono">393</td><td class="mono">49.1</td><td class="mono">2</td><td class="mono">14</td><td>Wednesday</td></tr>
+        <tr><td class="mono">12353</td><td class="mono">204</td><td class="mono">2</td><td class="num">£203</td><td class="num">£407</td><td class="mono">13</td><td class="mono">14.5</td><td class="mono">144</td><td class="mono">144.0</td><td class="mono">3</td><td class="mono">10</td><td>Thursday</td></tr>
+        <tr><td class="mono">12356</td><td class="mono">36</td><td class="mono">5</td><td class="num">£402</td><td class="num">£2,015</td><td class="mono">49</td><td class="mono">13.3</td><td class="mono">425</td><td class="mono">106.3</td><td class="mono">2</td><td class="mono">14</td><td>Wednesday</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Reading a customer row — Customer 12347:</strong><br>
+    Recency=2 → bought 2 days before snapshot (very active) · Frequency=8 → placed 8 orders · Monetary=£704 → average £704 per order · TotalSpend=£5,633 → spent £5,633 total · UniqueProducts=126 → bought 126 different products · Tenure=402 → was an active customer for 402 days · PurchaseVelocity=57 → orders every 57 days on average · Preferred day: Tuesday at 14:00.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     05 — BG/NBD MODEL
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="bgnbd">
+  <div class="section-num">05 — Probabilistic CLV Modelling</div>
+  <h2>BG/NBD + Gamma-Gamma</h2>
+  <p class="section-intro">Standard ML models see "no purchase in 60 days" and predict churn. BG/NBD is smarter — it asks whether this silence is normal for this specific customer's buying rhythm, or genuinely alarming. It models two hidden processes simultaneously for every customer.</p>
+
+  <div class="grid grid-2" style="margin-bottom:32px;">
+    <div class="card">
+      <span class="card-icon">🛒</span>
+      <h3>Purchase Process (NBD)</h3>
+      <p>While alive, each customer buys at their own personal rate λ. Some buy weekly, some monthly, some quarterly. These rates vary across the population following a Gamma distribution — that's the Negative Binomial (NBD) part.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">👻</span>
+      <h3>Dropout Process (BG)</h3>
+      <p>After each purchase, a customer has some probability p of never returning — quietly churning. Each customer has their own p, and these vary across the population following a Beta distribution — that's the Beta-Geometric (BG) part.</p>
+    </div>
+  </div>
+
+  <h4>What the model needs (inputs)</h4>
+  <div class="grid grid-3" style="margin-bottom:32px;">
+    <div class="card">
+      <h3>frequency (BG/NBD)</h3>
+      <p>Number of <strong>repeat</strong> purchases after the first. First purchase excluded — it's the starting point. Minimum 1 required. One-time buyers (1,681 customers) are filtered out before fitting.</p>
+    </div>
+    <div class="card">
+      <h3>recency (BG/NBD)</h3>
+      <p>Days between first and <strong>last</strong> purchase. Not the same as RFM recency. RFM recency measures from snapshot date. BG/NBD recency measures within the customer's own history.</p>
+    </div>
+    <div class="card">
+      <h3>T (observation window)</h3>
+      <p>Days between first purchase and snapshot date. Always ≥ recency. The gap (T − recency) = days the customer has been silent. This silence is the key signal for P(Alive).</p>
+    </div>
+  </div>
+
+  <h4>Model parameters learned from your data</h4>
+  <div class="param-grid">
+    <div class="param-box">
+      <div class="param-name">r = 1.517</div>
+      <div class="param-val">Shape of purchase rate distribution</div>
+      <div class="param-desc">Controls how spread out buying frequencies are across your 4,181 customers. r ≈ 1.5 means moderate variety — there's a mix of fast and slow buyers but not extremely polarised.</div>
+    </div>
+    <div class="param-box">
+      <div class="param-name">α = 103.875</div>
+      <div class="param-val">Scale of purchase rate distribution</div>
+      <div class="param-desc">Controls average purchase rate. High alpha (103) means customers buy roughly once every 103 days on average — slow but consistent. Expected for a wholesale retailer where businesses reorder seasonally.</div>
+    </div>
+    <div class="param-box">
+      <div class="param-name">a = 0.097</div>
+      <div class="param-val">Beta distribution — churn tendency</div>
+      <div class="param-desc">Very small value. Very few customers have a high dropout tendency after each purchase. Most customers who buy once tend to come back.</div>
+    </div>
+    <div class="param-box">
+      <div class="param-name">b = 0.976</div>
+      <div class="param-val">Beta distribution — retention tendency</div>
+      <div class="param-desc">Larger than a — confirms most customers tend to stay active after each purchase. Your customer base is loyal and sticky. Low overall churn risk population.</div>
+    </div>
+  </div>
+
+  <h4>What the model outputs (per customer)</h4>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>P(Alive)</h3>
+      <p>Probability that the customer is still an active buyer. Between 0 and 1. A score of 0.985 means 98.5% confident still active. A score of 0.31 means likely churned.</p><br>
+      <p><strong>Why it's powerful:</strong> Two customers with the same 300-day silence get very different P(Alive) if one naturally buys every 6 months and the other used to buy weekly.</p>
+    </div>
+    <div class="card">
+      <h3>Expected Future Purchases</h3>
+      <p>How many times the model expects the customer to buy in the next N days (we used 90 days). A value of 1.47 means the customer is expected to place about 1–2 orders in the next quarter.</p><br>
+      <p><strong>Why it's useful:</strong> Multiplied by average order value and profit margin gives us CLV — a financial number the business can act on directly.</p>
+    </div>
+  </div>
+
+  <h4>Gamma-Gamma Spend Model</h4>
+  <div class="callout">
+    <strong>What it does:</strong> Estimates how much each customer will spend per order in the future, based on their historical spending pattern.<br><br>
+    <strong>Key assumption verified:</strong> How often a customer buys (frequency) must be independent of how much they spend per order (monetary). We verified this — Pearson correlation was 0.023, well below the 0.30 threshold. Safe to proceed.<br><br>
+    <strong>Parameters learned:</strong> p = 11.75 (spending consistency within each customer — high p means predictable spenders), q = 0.884 (spread of spending across customers — less than 1 means high variety between customers), v = 11.72 (population average spend anchor).
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     06 — CLV CALCULATION
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="clv">
+  <div class="section-num">06 — CLV Calculation</div>
+  <h2>90-Day Customer Lifetime Value</h2>
+  <p class="section-intro">We combined both models to produce a single financial number per customer — how much profit they are expected to generate in the next 90 days.</p>
+
+  <div class="formula">
+CLV (90d) = E[future purchases] × E[avg order value] × profit margin × discount factor
+
+Where:
+  E[future purchases]  → from BG/NBD model (predicted_purchases_90d)
+  E[avg order value]   → from Gamma-Gamma model
+  Profit margin        → 20% (assumed gross margin)
+  Discount rate        → 1% monthly (money today > money tomorrow)
+  Forecast horizon     → 3 months (90 days)
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><span class="kpi-val">4,181</span><span class="kpi-label">Customers Scored</span></div>
+    <div class="kpi"><span class="kpi-val">£104</span><span class="kpi-label">Mean 90d CLV</span></div>
+    <div class="kpi"><span class="kpi-val">£42</span><span class="kpi-label">Median 90d CLV</span></div>
+    <div class="kpi"><span class="kpi-val">£21,705</span><span class="kpi-label">Max 90d CLV</span></div>
+    <div class="kpi"><span class="kpi-val">81%</span><span class="kpi-label">Avg P(Alive)</span></div>
+  </div>
+
+  <div class="callout">
+    <strong>Mean (£104) vs Median (£42):</strong> The mean is more than double the median. A small number of very high-value Champions are pulling the average up significantly. The median (£42) is a more honest representation of what a typical customer is worth. This gap is the Pareto effect in action.
+  </div>
+
+  <h4>Sample CLV scores</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Customer ID</th><th>Frequency</th><th>Recency (BG)</th><th>T</th><th>P(Alive)</th><th>Pred. Purchases 90d</th><th>CLV 90d</th></tr></thead>
+      <tbody>
+        <tr><td>12347</td><td class="mono">7</td><td class="mono">402</td><td class="mono">405</td><td class="num">98.5%</td><td class="mono">1.47</td><td class="num">£207.63</td></tr>
+        <tr><td>12346</td><td class="mono">7</td><td class="mono">400</td><td class="mono">726</td><td class="num">50.6%</td><td class="mono">0.46</td><td class="num">£1,009.45</td></tr>
+        <tr><td>12348</td><td class="mono">4</td><td class="mono">363</td><td class="mono">439</td><td class="num">94.7%</td><td class="mono">0.86</td><td class="num">£61.07</td></tr>
+        <tr><td>12353</td><td class="mono">1</td><td class="mono">204</td><td class="mono">409</td><td class="num">73.5%</td><td class="mono">0.32</td><td class="num">£6.39</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     07 — SEGMENTATION
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="segments">
+  <div class="section-num">07 — Customer Segmentation</div>
+  <h2>K-Means Clustering</h2>
+  <p class="section-intro">We grouped all 5,862 customers into 4 segments using K-Means clustering. Both the Elbow Curve and Silhouette Score pointed to K=4 as optimal. We capped features at the 99th percentile before clustering to prevent extreme outliers from dominating the results.</p>
+
+  <div class="callout">
+    <strong>Why we scaled features before clustering:</strong> K-Means measures distance between customers. Without scaling, TotalSpend (£77,000) would completely dominate UniqueProducts (27). StandardScaler converts every feature to zero mean and unit variance so all features contribute equally to the distance calculation.
+  </div>
+
+  <div class="grid grid-2">
+    <div class="segment-card champions">
+      <div class="segment-label">Segment 3</div>
+      <h3>Champions</h3>
+      <div class="segment-stat"><span class="s-label">Customers</span><span class="s-val">162 (2.8%)</span></div>
+      <div class="segment-stat"><span class="s-label">Avg Recency</span><span class="s-val">37 days</span></div>
+      <div class="segment-stat"><span class="s-label">Avg Frequency</span><span class="s-val">47 orders</span></div>
+      <div class="segment-stat"><span class="s-label">Avg TotalSpend</span><span class="s-val">£46,443</span></div>
+      <div class="segment-stat"><span class="s-label">Avg CLV 90d</span><span class="s-val">£1,148</span></div>
+      <div class="segment-stat"><span class="s-label">Avg P(Alive)</span><span class="s-val">95%</span></div>
+      <div class="segment-action">✅ Retain & Reward. VIP treatment, exclusive access, dedicated account manager. Never send generic promotions.</div>
+    </div>
+    <div class="segment-card loyal">
+      <div class="segment-label">Segment 1</div>
+      <h3>Loyal Customers</h3>
+      <div class="segment-stat"><span class="s-label">Customers</span><span class="s-val">976 (16.6%)</span></div>
+      <div class="segment-stat"><span class="s-label">Avg Recency</span><span class="s-val">43 days</span></div>
+      <div class="segment-stat"><span class="s-label">Avg Frequency</span><span class="s-val">14 orders</span></div>
+      <div class="segment-stat"><span class="s-label">Avg TotalSpend</span><span class="s-val">£5,659</span></div>
+      <div class="segment-stat"><span class="s-label">Avg CLV 90d</span><span class="s-val">£139</span></div>
+      <div class="segment-stat"><span class="s-label">Avg P(Alive)</span><span class="s-val">95%</span></div>
+      <div class="segment-action">🔵 Nurture & Grow. Personalised recommendations and moderate incentives. Some can become Champions.</div>
+    </div>
+    <div class="segment-card atrisk">
+      <div class="segment-label">Segment 2</div>
+      <h3>At Risk</h3>
+      <div class="segment-stat"><span class="s-label">Customers</span><span class="s-val">2,382 (40.6%)</span></div>
+      <div class="segment-stat"><span class="s-label">Avg Recency</span><span class="s-val">104 days</span></div>
+      <div class="segment-stat"><span class="s-label">Avg Frequency</span><span class="s-val">4 orders</span></div>
+      <div class="segment-stat"><span class="s-label">Avg TotalSpend</span><span class="s-val">£1,298</span></div>
+      <div class="segment-stat"><span class="s-label">Avg CLV 90d</span><span class="s-val">£45</span></div>
+      <div class="segment-stat"><span class="s-label">Avg P(Alive)</span><span class="s-val">88%</span></div>
+      <div class="segment-action">🟠 Win-Back Campaign. Time-limited offer within 2 weeks before they drift to Lost/Dormant.</div>
+    </div>
+    <div class="segment-card dormant">
+      <div class="segment-label">Segment 0</div>
+      <h3>Lost / Dormant</h3>
+      <div class="segment-stat"><span class="s-label">Customers</span><span class="s-val">2,342 (39.9%)</span></div>
+      <div class="segment-stat"><span class="s-label">Avg Recency</span><span class="s-val">376 days</span></div>
+      <div class="segment-stat"><span class="s-label">Avg Frequency</span><span class="s-val">1.7 orders</span></div>
+      <div class="segment-stat"><span class="s-label">Avg TotalSpend</span><span class="s-val">£561</span></div>
+      <div class="segment-stat"><span class="s-label">Avg CLV 90d</span><span class="s-val">£9</span></div>
+      <div class="segment-stat"><span class="s-label">Avg P(Alive)</span><span class="s-val">30%</span></div>
+      <div class="segment-action">🔴 Low-cost reactivation only. 70% probability already churned. One bulk email max.</div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:32px;">
+    <strong>The Pareto insight:</strong> Champions are just 2.8% of the customer base but their average 90d CLV (£1,148) is 128× higher than Lost/Dormant (£9). Losing 10 Champions has the same revenue impact as losing 1,280 dormant customers.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     08 — CHURN MODEL
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="churn">
+  <div class="section-num">08 — Churn Prediction</div>
+  <h2>XGBoost Churn Classifier</h2>
+  <p class="section-intro">We trained an XGBoost classifier to predict churn probability for every customer. XGBoost builds hundreds of decision trees sequentially, each correcting the mistakes of the previous one — a technique called gradient boosting.</p>
+
+  <h4>Churn Label Definition</h4>
+  <div class="formula">
+Churned = 1  IF  Recency > 90 days  AND  P(Alive) < 0.5
+Churned = 0  otherwise
+
+Churn rate: 10.5%  (613 out of 5,862 customers)
+  </div>
+
+  <div class="callout">
+    <strong>Why a hybrid label?</strong> Using recency alone would mislabel slow buyers as churned. A customer who naturally orders every 4 months has a 120-day recency — but they're not churned, they're just slow. Adding the BG/NBD P(Alive) check ensures we only label a customer as churned if both the time signal AND the probabilistic model agree.
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><span class="kpi-val">0.9994</span><span class="kpi-label">ROC-AUC</span></div>
+    <div class="kpi"><span class="kpi-val">99%</span><span class="kpi-label">Overall Accuracy</span></div>
+    <div class="kpi"><span class="kpi-val">90%</span><span class="kpi-label">Churn Precision</span></div>
+    <div class="kpi"><span class="kpi-val">98%</span><span class="kpi-label">Churn Recall</span></div>
+  </div>
+
+  <h4>SHAP Feature Importance</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Rank</th><th>Feature</th><th>Direction</th><th>Business meaning</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1</td><td><strong>Recency</strong></td><td><span class="tag orange">High → more churn</span></td><td>Single strongest signal. Customers who haven't bought recently are far more likely to churn.</td></tr>
+        <tr><td class="mono">2</td><td><strong>Frequency</strong></td><td><span class="tag blue">High → less churn</span></td><td>Customers who buy regularly are much less likely to leave.</td></tr>
+        <tr><td class="mono">3</td><td><strong>PurchaseVelocity</strong></td><td><span class="tag blue">Low → less churn</span></td><td>Short gaps between orders = less likely to churn.</td></tr>
+        <tr><td class="mono">4</td><td><strong>Tenure</strong></td><td><span class="tag orange">Long + silent → more churn</span></td><td>A long-standing customer who suddenly goes quiet is a strong churn signal.</td></tr>
+        <tr><td class="mono">5–10</td><td>TotalSpend, Monetary etc.</td><td><span class="tag blue">Minimal impact</span></td><td>Spending behaviour has almost no predictive power for churn.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Key insight:</strong> Churn is driven by time-based signals, not spending. Don't wait for a customer's order value to drop before acting. Watch recency and purchase velocity. When a customer breaks their natural buying rhythm — act immediately.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     09 — UPLIFT MODEL
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="uplift">
+  <div class="section-num">09 — Uplift Modelling</div>
+  <h2>T-Learner Promotion Response</h2>
+  <p class="section-intro">A regular conversion model tells you who will buy. Uplift modelling tells you who will buy <em>because of</em> the promotion — not just buy anyway. This distinction is worth millions in reduced promotional waste.</p>
+
+  <h4>The 4 Customer Types</h4>
+  <div class="uplift-table">
+    <div class="uplift-row header">
+      <div class="uplift-cell">Type</div>
+      <div class="uplift-cell">Without Promo</div>
+      <div class="uplift-cell">With Promo</div>
+      <div class="uplift-cell">Uplift Score</div>
+      <div class="uplift-cell">Action</div>
+    </div>
+    <div class="uplift-row">
+      <div class="uplift-cell"><strong>Persuadables</strong></div>
+      <div class="uplift-cell">Won't buy</div>
+      <div class="uplift-cell">Will buy</div>
+      <div class="uplift-cell"><span class="tag green">High +</span></div>
+      <div class="uplift-cell">✅ Target these</div>
+    </div>
+    <div class="uplift-row">
+      <div class="uplift-cell"><strong>Sure Things</strong></div>
+      <div class="uplift-cell">Will buy</div>
+      <div class="uplift-cell">Will buy</div>
+      <div class="uplift-cell"><span class="tag blue">Near zero</span></div>
+      <div class="uplift-cell">❌ Wasted money</div>
+    </div>
+    <div class="uplift-row">
+      <div class="uplift-cell"><strong>Lost Causes</strong></div>
+      <div class="uplift-cell">Won't buy</div>
+      <div class="uplift-cell">Won't buy</div>
+      <div class="uplift-cell"><span class="tag blue">Near zero</span></div>
+      <div class="uplift-cell">❌ Don't bother</div>
+    </div>
+    <div class="uplift-row">
+      <div class="uplift-cell"><strong>Sleeping Dogs</strong></div>
+      <div class="uplift-cell">Will buy</div>
+      <div class="uplift-cell">Won't buy</div>
+      <div class="uplift-cell"><span class="tag red">Negative −</span></div>
+      <div class="uplift-cell">❌ Never target</div>
+    </div>
+  </div>
+
+  <h4>How T-Learner Works</h4>
+  <div class="formula">
+Step 1: Split data into two groups
+        Treatment group → customers who received the promotion
+        Control group   → customers who did not
+
+Step 2: Train two separate XGBoost models
+        μ1(x) = P(convert | received promotion, features x)
+        μ0(x) = P(convert | no promotion,       features x)
+
+Step 3: For each new customer calculate uplift score
+        Uplift = μ1(customer) − μ0(customer)
+
+Step 4: Rank customers by uplift score — target the top N%
+  </div>
+
+  <div class="callout">
+    <strong>The Promotion Experiment (Simulated):</strong> In a real business you would use actual A/B test logs from your CRM. In this project we simulated a randomised controlled trial (RCT). Treatment was randomly assigned using a 50/50 coin flip. Conversion probability was modelled as a function of CLV and recency, with uplift highest for mid-range customers (the inverted-U formula) — reflecting the real insight that Champions buy anyway and dormant customers don't respond regardless.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     10 — BUSINESS SIMULATION
+═══════════════════════════════════════════════════════════ -->
+<section class="section" id="simulation">
+  <div class="section-num">10 — Business Impact Simulation</div>
+  <h2>ROI Comparison of Targeting Strategies</h2>
+  <p class="section-intro">We simulated targeting the top 20% of customers using three different strategies and compared promotional ROI. This translates model outputs into the financial language that businesses care about.</p>
+
+  <div class="formula">
+Assumptions:
+  Promotion cost per customer    = £2.00
+  Average revenue per conversion = £35.00
+  Target                         = top 20% of customers
+
+ROI = (Revenue − Cost) / Cost × 100%
+  </div>
+
+  <div class="roi-row">
+    <div class="roi-header">Strategy</div>
+    <div class="roi-header">Revenue</div>
+    <div class="roi-header">Cost</div>
+    <div class="roi-header">ROI</div>
+    <div class="roi-cell strategy">🎯 Uplift targeting (top 20% by uplift score)</div>
+    <div class="roi-cell money">£560</div>
+    <div class="roi-cell money">£468</div>
+    <div class="roi-cell positive">+19.7%</div>
+    <div class="roi-cell strategy">📊 Random baseline (no targeting)</div>
+    <div class="roi-cell money">£350</div>
+    <div class="roi-cell money">£468</div>
+    <div class="roi-cell negative">−25.2%</div>
+    <div class="roi-cell strategy">💰 CLV targeting (top 20% by CLV)</div>
+    <div class="roi-cell money">£175</div>
+    <div class="roi-cell money">£468</div>
+    <div class="roi-cell negative">−62.6%</div>
+  </div>
+
+  <div class="callout">
+    <strong>Key insight — high CLV ≠ persuadable:</strong> CLV targeting performed worst because Champions (high CLV) buy anyway — they don't need a promotion. The uplift model correctly identified mid-range customers who genuinely respond, achieving the only profitable ROI. This is the core value proposition of uplift modelling over simple conversion or CLV targeting.
+  </div>
+
+  <div class="grid grid-3">
+    <div class="card">
+      <span class="card-icon">🏆</span>
+      <h3>Use uplift scores to target</h3>
+      <p>Only send promotions to customers with high positive uplift scores. These are the Persuadables — the promotion genuinely moves the needle for them.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">🛡️</span>
+      <h3>Protect Champions differently</h3>
+      <p>Champions don't need discounts — they buy anyway. Invest in loyalty programmes, exclusive access, and personalised service instead.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">⚡</span>
+      <h3>Act fast on At Risk</h3>
+      <p>At Risk customers still have meaningful CLV (£45 average). A targeted win-back campaign now costs far less than losing them permanently.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div style="margin-bottom:8px; color: var(--accent);">Retail CLV Optimization Engine — Project Documentation</div>
+  <div>Stack: Python · Pandas · XGBoost · Lifetimes (BG/NBD) · Scikit-learn · SHAP · Scikit-uplift · K-Means · Streamlit · MLflow · Plotly</div>
+  <div style="margin-top:8px;">Dataset: Online Retail II — UCI Machine Learning Repository · 2 year observation window · Dec 2009 – Dec 2011</div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ── Monthly Revenue Chart ──────────────────────────────────────
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const months = ['Dec\n2009','Jan\n2010','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan\n2011','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const revenues = [681530,539008,499950,668978,588126,595087,632686,584049,597130,808545,1015989,1163154,877814,564227,443546,585263,455667,660918,654933,593232,637157,941801,1006342,1143246,513380];
+const bgColors = revenues.map(v => v > 900000 ? 'rgba(107,224,154,0.7)' : 'rgba(240,165,0,0.5)');
+
+new Chart(revenueCtx, {
+  type: 'bar',
+  data: {
+    labels: ['Dec 09','Jan 10','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan 11','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec 11'],
+    datasets: [{
+      label: 'Revenue (£)',
+      data: revenues,
+      backgroundColor: bgColors,
+      borderColor: bgColors.map(c => c.replace('0.7','1').replace('0.5','0.8')),
+      borderWidth: 1,
+      borderRadius: 3,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => '£' + ctx.raw.toLocaleString()
+        }
+      }
+    },
+    scales: {
+      x: { ticks: { color: '#888', font: { size: 10 } }, grid: { color: '#222' } },
+      y: {
+        ticks: {
+          color: '#888',
+          callback: v => '£' + (v/1000).toFixed(0) + 'k'
+        },
+        grid: { color: '#222' }
+      }
+    }
+  }
+});
+
+// ── Country Revenue Chart ──────────────────────────────────────
+const countryCtx = document.getElementById('countryChart').getContext('2d');
+new Chart(countryCtx, {
+  type: 'bar',
+  data: {
+    labels: ['UK','Ireland','Netherlands','Germany','France','Australia','Spain','Switzerland','Sweden','Denmark'],
+    datasets: [{
+      label: 'Revenue (£)',
+      data: [14627419,602058,549953,388960,315714,168485,98841,93624,86079,68560],
+      backgroundColor: [
+        'rgba(240,165,0,0.7)',
+        'rgba(92,184,224,0.6)','rgba(92,184,224,0.6)','rgba(92,184,224,0.6)',
+        'rgba(92,184,224,0.6)','rgba(92,184,224,0.5)','rgba(92,184,224,0.5)',
+        'rgba(92,184,224,0.5)','rgba(92,184,224,0.5)','rgba(92,184,224,0.5)'
+      ],
+      borderRadius: 3,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => '£' + ctx.raw.toLocaleString() } }
+    },
+    scales: {
+      x: { ticks: { color: '#888', font: { size: 11 } }, grid: { color: '#222' } },
+      y: {
+        ticks: { color: '#888', callback: v => '£' + (v/1000000).toFixed(1) + 'M' },
+        grid: { color: '#222' }
+      }
+    }
+  }
+});
+
+// ── Smooth scroll ──────────────────────────────────────────────
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
 </body>
 </html>
